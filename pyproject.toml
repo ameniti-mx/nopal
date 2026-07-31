@@ -1,7 +1,7 @@
 [project]
 name = "nopal-vision"
 version = "0.1.0"
-description = "Open-source computer vision API for physical spaces"
+description = "API de visión computacional de código abierto para espacios físicos"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}

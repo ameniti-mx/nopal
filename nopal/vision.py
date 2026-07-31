@@ -21,7 +21,7 @@ def decode_image(data: bytes) -> np.ndarray:
     buffer = np.frombuffer(data, dtype=np.uint8)
     image = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
     if image is None:
-        raise ValueError("The uploaded file is not a supported image")
+        raise ValueError("El archivo enviado no es una imagen compatible")
     return image
 
 
@@ -96,5 +96,5 @@ def analyze_image(data: bytes) -> ImageAnalysis:
         plates = detect_plates(image)
     except pytesseract.TesseractNotFoundError:
         plates = []
-        warnings.append("Tesseract is unavailable; plate OCR was skipped")
+        warnings.append("Tesseract no está disponible; se omitió el OCR de placas")
     return ImageAnalysis(width=width, height=height, plates=plates, warnings=warnings)

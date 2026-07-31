@@ -1,35 +1,35 @@
 # Nopal 🌵
 
-**Open-source computer vision for physical spaces.**
+**Visión computacional de código abierto para espacios físicos.**
 
-Nopal converts images and camera streams into structured events for access control, mobility, security and property-management systems. It is privacy-first, API-first and designed to run locally at the edge.
+Nopal convierte imágenes y transmisiones de cámaras en eventos estructurados para sistemas de control de acceso, movilidad, seguridad y administración de inmuebles. Está diseñado con privacidad desde el origen, una arquitectura centrada en API y la capacidad de ejecutarse localmente en el borde.
 
-## First release
+## Primera versión
 
-Version `0.1.0` provides:
+La versión `0.1.0` incluye:
 
-- FastAPI service with interactive OpenAPI documentation.
-- JPEG, PNG and WebP image ingestion.
-- License-plate candidate detection using OpenCV.
-- Local OCR using Tesseract.
-- Structured JSON results with bounding boxes and confidence.
-- Upload validation, configurable limits and graceful OCR degradation.
-- Docker image and starter API tests.
+- Servicio desarrollado con FastAPI y documentación interactiva OpenAPI.
+- Recepción de imágenes JPEG, PNG y WebP.
+- Detección de candidatos a placa mediante OpenCV.
+- Reconocimiento óptico de caracteres local con Tesseract.
+- Resultados JSON estructurados con coordenadas y nivel de confianza.
+- Validación de archivos, límites configurables y degradación controlada cuando el OCR no está disponible.
+- Imagen de Docker y pruebas iniciales de la API.
 
-This is an early baseline, not a production-grade ALPR system. Recognition accuracy depends heavily on camera angle, lighting, motion blur and plate format. Future releases will add trained detectors, RTSP/ONVIF ingestion, event persistence and object tracking.
+Esta es una base temprana y todavía no constituye un sistema ALPR listo para producción. La precisión depende significativamente del ángulo de la cámara, la iluminación, el desenfoque por movimiento y el formato de la placa. Las siguientes versiones incorporarán detectores entrenados, conexión con cámaras RTSP/ONVIF, persistencia de eventos y seguimiento de objetos.
 
-## Run with Docker
+## Ejecutar con Docker
 
 ```bash
 docker build -t nopal .
 docker run --rm -p 8000:8000 nopal
 ```
 
-Open `http://localhost:8000/docs`.
+Abre `http://localhost:8000/docs` para consultar y probar la API.
 
-## Run locally
+## Ejecutar localmente
 
-Python 3.11 and Tesseract are required.
+Se requiere Python 3.11 y Tesseract.
 
 ```bash
 python -m venv .venv
@@ -38,14 +38,14 @@ pip install -e '.[dev]'
 uvicorn nopal.main:app --reload
 ```
 
-## Analyze an image
+## Analizar una imagen
 
 ```bash
 curl -X POST http://localhost:8000/v1/analyze/image \
-  -F 'image=@vehicle.jpg'
+  -F 'image=@vehiculo.jpg'
 ```
 
-Example response:
+Respuesta de ejemplo:
 
 ```json
 {
@@ -65,34 +65,36 @@ Example response:
 }
 ```
 
-## Configuration
+Los nombres de los campos se conservan en inglés para mantener una API estable e interoperable.
 
-Environment variables use the `NOPAL_` prefix:
+## Configuración
 
-| Variable | Default | Description |
+Las variables de entorno utilizan el prefijo `NOPAL_`:
+
+| Variable | Valor predeterminado | Descripción |
 | --- | --- | --- |
-| `NOPAL_MAX_UPLOAD_MB` | `10` | Maximum image size. |
-| `NOPAL_ENABLE_OCR` | `true` | Enables plate OCR. |
-| `NOPAL_TESSERACT_COMMAND` | empty | Custom Tesseract executable path. |
+| `NOPAL_MAX_UPLOAD_MB` | `10` | Tamaño máximo permitido para una imagen. |
+| `NOPAL_ENABLE_OCR` | `true` | Activa el reconocimiento de caracteres de las placas. |
+| `NOPAL_TESSERACT_COMMAND` | vacío | Ruta personalizada al ejecutable de Tesseract. |
 
-## Roadmap
+## Hoja de ruta
 
-- Trained license-plate detector for Mexican formats.
-- Vehicle, person, motorcycle and bicycle detection.
-- RTSP and ONVIF camera connectors.
-- Entry/exit events and multi-camera tracking.
-- Privacy masks and configurable retention.
-- Webhooks, Open Condo and Ameniti integrations.
-- Edge deployment profiles for CPU, CUDA and embedded devices.
+- Detector de placas entrenado para formatos mexicanos.
+- Detección de vehículos, personas, motocicletas y bicicletas.
+- Conectores para cámaras RTSP y ONVIF.
+- Eventos de entrada y salida, y seguimiento entre múltiples cámaras.
+- Máscaras de privacidad y políticas configurables de retención.
+- Webhooks e integraciones con Open Condo y Ameniti.
+- Perfiles de despliegue en el borde para CPU, CUDA y dispositivos integrados.
 
-## Principles
+## Principios
 
-1. Local processing first.
-2. Open formats and interoperable APIs.
-3. Privacy by design.
-4. Human review for consequential decisions.
-5. No facial identification in the core project.
+1. Procesamiento local como primera opción.
+2. Formatos abiertos y API interoperables.
+3. Privacidad desde el diseño.
+4. Revisión humana para decisiones con consecuencias relevantes.
+5. Sin identificación facial en el núcleo del proyecto.
 
-## License
+## Licencia
 
 Apache License 2.0.
