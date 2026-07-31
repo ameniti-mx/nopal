@@ -40,7 +40,11 @@ def _ocr_plate(crop: np.ndarray) -> tuple[str | None, float]:
     gray = cv2.bilateralFilter(gray, 9, 75, 75)
     threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
     config = "--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    data = pytesseract.image_to_data(threshold, config=config, output_type=pytesseract.Output.DICT)
+    data = pytesseract.image_to_data(
+        threshold,
+        config=config,
+        output_type=pytesseract.Output.DICT,
+    )
 
     candidates: list[tuple[str, float]] = []
     for text, confidence in zip(data["text"], data["conf"], strict=False):
@@ -74,7 +78,10 @@ def detect_plates(image: np.ndarray) -> list[PlateDetection]:
             continue
 
         padding = 4
-        crop = image[max(0, y-padding):y+height+padding, max(0, x-padding):x+width+padding]
+        crop = image[
+            max(0, y - padding) : y + height + padding,
+            max(0, x - padding) : x + width + padding,
+        ]
         text, confidence = _ocr_plate(crop)
         detections.append(
             PlateDetection(
