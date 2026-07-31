@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -25,9 +25,9 @@ class ObjectDetection(BaseModel):
 
 class AnalysisResponse(BaseModel):
     request_id: str
-    processed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    processed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     width: int
     height: int
     plates: list[PlateDetection]
     objects: list[ObjectDetection]
-    warnings: list[str] = []
+    warnings: list[str] = Field(default_factory=list)
