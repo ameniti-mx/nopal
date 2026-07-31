@@ -1,0 +1,143 @@
+name: Validación integral
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validacion-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  calidad:
+    name: Calidad de código
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar dependencias
+        run: pip install -e '.[dev]'
+      - name: Verificar formato
+        run: ruff format --check .
+      - name: Ejecutar lint
+        run: ruff check .
+      - name: Verificar compilación
+        run: python -m compileall -q nopal tests
+
+  pruebas:
+    name: Pruebas Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Instalar Tesseract
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
+      - name: Instalar dependencias
+        run: pip install -e '.[dev]'
+      - name: Ejecutar pruebas con cobertura
+        run: pytest --cov=nopal --cov-report=term-missing --cov-report=xml --cov-fail-under=50
+      - name: Publicar cobertura
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage.xml
+
+  seguridad:
+    name: Seguridad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Actualizar herramientas base
+        run: python -m pip install --upgrade "pip>=26.2" "setuptools>=83"
+      - name: Instalar proyecto y analizadores
+        run: pip install -e . pip-audit bandit
+      - name: Auditar dependencias
+        run: pip-audit --local
+      - name: Analizar código
+        run: bandit -q -r nopal
+
+  paquete:
+    name: Construcción del paquete
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar constructor
+        run: pip install build
+      - name: Construir distribuciones
+        run: python -m build
+      - name: Guardar paquete
+        uses: actions/upload-artifact@v4
+        with:
+          name: paquete-python
+          path: dist/
+
+  docker:
+    name: Construcción de Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+      - name: Configurar Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: nopal:validacion
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  validacion:
+    name: Validación obligatoria
+    if: always()
+    needs: [calidad, pruebas, seguridad, paquete, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comprobar resultados
+        env:
+          CALIDAD: ${{ needs.calidad.result }}
+          PRUEBAS: ${{ needs.pruebas.result }}
+          SEGURIDAD: ${{ needs.seguridad.result }}
+          PAQUETE: ${{ needs.paquete.result }}
+          DOCKER: ${{ needs.docker.result }}
+        run: |
+          echo "calidad=$CALIDAD pruebas=$PRUEBAS seguridad=$SEGURIDAD paquete=$PAQUETE docker=$DOCKER"
+          test "$CALIDAD" = "success"
+          test "$PRUEBAS" = "success"
+          test "$SEGURIDAD" = "success"
+          test "$PAQUETE" = "success"
+          test "$DOCKER" = "success"
