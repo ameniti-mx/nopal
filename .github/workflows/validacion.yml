@@ -127,7 +127,15 @@ jobs:
     steps:
       - name: Comprobar resultados
         env:
-          RESULTADOS: ${{ join(needs.*.result, ',') }}
+          CALIDAD: ${{ needs.calidad.result }}
+          PRUEBAS: ${{ needs.pruebas.result }}
+          SEGURIDAD: ${{ needs.seguridad.result }}
+          PAQUETE: ${{ needs.paquete.result }}
+          DOCKER: ${{ needs.docker.result }}
         run: |
-          echo "Resultados: $RESULTADOS"
-          test "$RESULTADOS" = "success,success,success,success,success"
+          echo "calidad=$CALIDAD pruebas=$PRUEBAS seguridad=$SEGURIDAD paquete=$PAQUETE docker=$DOCKER"
+          test "$CALIDAD" = "success"
+          test "$PRUEBAS" = "success"
+          test "$SEGURIDAD" = "success"
+          test "$PAQUETE" = "success"
+          test "$DOCKER" = "success"
